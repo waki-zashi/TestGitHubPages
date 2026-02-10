@@ -1,0 +1,377 @@
+* {
+  box-sizing: border-box;
+  font-family: monospace;
+}
+
+body {
+  margin: 0;
+  background: black;
+  color: white;
+}
+
+#game {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+#background {
+  position: absolute;
+  inset: 0;
+  background: #222;
+  background-size: cover;
+  background-position: center;
+}
+
+#content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  background: rgba(0,0,0,0.05);
+}
+
+#choices {
+  margin-top: 30px;
+}
+
+#choice-labels {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.choice-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  text-shadow: 3px 6px 6px rgba(0, 0, 0, 1);
+}
+
+#choice-left {
+  left: 30px;
+}
+
+#choice-right {
+  right: 30px;
+  text-align: right;
+}
+
+.choice-label.active {
+  opacity: 1;
+}
+
+#choice-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  opacity: 0;
+}
+
+#choice-gradient.left {
+  background: linear-gradient(to right, rgba(252, 255, 94, 0.15), transparent);
+  opacity: 1;
+}
+
+#choice-gradient.right {
+  background: linear-gradient(to left, rgba(252, 255, 94, 0.15), transparent);
+  opacity: 1;
+}
+
+#fade-layer {
+  position: fixed;
+  inset: 0;
+  background: black;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s;
+  z-index: 20;
+}
+
+#fade-layer.active {
+  opacity: 1;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#particles {
+  position: fixed;
+  inset: 0;
+
+  pointer-events: none;
+  z-index: 3;
+}
+
+#intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 1.8s ease;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#intro-overlay.active {
+  opacity: 1;
+}
+
+#intro-overlay img {
+  max-width: 60%;
+  max-height: 60%;
+  object-fit: contain;
+  opacity: 0;
+  transform: scale(0.94);
+  transition: all 2.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.7));
+}
+
+#intro-overlay.active img {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.text-container {
+  position: fixed;
+  bottom: 0;
+  right: 320px;
+  /* left: 50%;
+  transform: translateX(-50%); */
+  width: 70%;                    /* ← основной размер бокса (как у #text-box) */
+  max-width: 1100px;             /* опционально — чтобы на большом экране не растягивался слишком сильно */
+  z-index: 12;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  filter: drop-shadow(0 2px 20px rgba(0, 0, 0, 0.4));
+}
+
+.text-container.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Фон бокса — разный для narration и dialogue */
+#text-box-bg {
+  display: none;
+  width: 100%;
+  height: auto;
+}
+
+#dialogue-box-bg {
+  display: none;
+  width: 90%;
+  height: auto;
+}
+
+.text-container.visible #text-box-bg,
+.text-container.visible #dialogue-box-bg {
+  display: block;
+}
+
+#text-box, 
+#dialogue-box {
+  z-index: 10;
+}
+
+/* Сам текст — делаем одинаковым */
+#text {
+  position: absolute;
+  top: 80px;                     /* ← расстояние от верха рамки — ключевое */
+  right: 50px;
+  left: 60px;                    /* ← отступ слева */
+  
+  transform: none;
+  
+  width: auto;
+  max-width: 85%;                /* ← ограничивает ширину текста внутри рамки */
+  
+  padding: 0;
+  margin: 0;
+  
+  text-align: left;
+}
+
+#dialogue-text {
+  position: absolute;
+  top: 80px;                     /* ← расстояние от верха рамки — ключевое */
+  right: 60px;
+  left: 60px;                    /* ← отступ слева */
+  
+  transform: none;
+  
+  width: auto;
+  max-width: 80%;                /* ← ограничивает ширину текста внутри рамки */
+  
+  padding: 0;
+  margin: 0;
+  
+  text-align: left;
+}
+
+#text p,
+#dialogue-text p {
+  margin: 0 0 12px;
+  animation: fadeUp 0.4s ease;
+  font-family: "Georgia", serif;
+  font-size: 22px;
+  line-height: 1.2;
+  color: #8E5840;                /* одинаковый цвет для обоих */
+}
+
+/* Ending overlay */
+#ending-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+#ending-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#ending-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;     /* ← ключевой момент — контент прижимается к низу */
+  height: 85vh;                  /* ← контролируемая высота контейнера */
+  width: 90vw;
+  max-width: 60%;             /* ограничение, чтобы не растягивался слишком сильно */
+  max-height: 60%;
+}
+
+/* Само изображение */
+#ending-overlay #ending-frame-image {
+  max-width: 100%;               /* занимает всю ширину контейнера */
+  max-height: 90%;               /* оставляет ~10% высоты снизу под кнопку */
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 6px 7px rgba(0, 0, 0, 0.7));
+}
+
+/* Кнопка — теперь внутри frame, внизу */
+#ending-overlay #ending-return-btn {
+  position: absolute;
+  bottom: 12%;                    /* расстояние от низа frame (можно 3–8%) */
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 2;
+}
+
+#ending-overlay #ending-return-btn img {
+  display: block;
+  width: auto;
+  height: 90px;                  /* подбери под размер своей кнопки */
+  max-width: 80vw;               /* чтобы не вылезала за пределы на мобильных */
+}
+
+#ending-overlay #ending-return-btn:hover {
+  opacity: 0.9;
+}
+
+#item-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+#item-overlay.active {
+  opacity: 1;
+}
+
+.item-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.item-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* АУРА */
+.item-aura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 800px;          /* НАСТРАИВАЕШЬ */
+  height: 800px;
+  transform: translate(-50%, -50%);
+  animation: aura-rotate 8s linear infinite;
+  z-index: 1;
+}
+
+/* ПРЕДМЕТ */
+#item-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 400px;          /* размер предмета */
+  transform: translate(-50%, -50%);
+  image-rendering: pixelated;
+  z-index: 2;
+}
+
+/* ЗВЁЗДЫ */
+#item-stars {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2000px;
+  height: 2000px;
+  z-index: 0;
+}
+
+@keyframes aura-rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
