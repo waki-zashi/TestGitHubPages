@@ -67,13 +67,6 @@ function renderScene(sceneId, fromHistory = false) {
   state.choiceReady = false;
   state.introTimeout = null;
 
-  // Сразу держим экран чёрным (fade active), пока фон не загрузится
-  fadeEl.classList.add("active");
-
-  // Устанавливаем фон (браузер начинает загрузку)
-  backgroundEl.style.backgroundImage = `url(${scene.background})`;
-
-  // Очищаем текст (как было)
   textEl.innerHTML = "";
   if (dialogueTextEl) {
     dialogueTextEl.innerHTML = "";
@@ -96,7 +89,24 @@ function renderScene(sceneId, fromHistory = false) {
 
   const introOverlay = document.getElementById("intro-overlay");
 
-  // ── Специальная обработка intro ─────────────────────────────────────
+  // ✅ ВАЖНО: загружаем фон ДО начала сцены
+  const bgImage = new Image();
+  bgImage.src = scene.background;
+
+  bgImage.onload = () => {
+    backgroundEl.style.backgroundImage = `url(${scene.background})`;
+
+    // Только после полной загрузки убираем fade
+    fadeEl.classList.add("active");
+    setTimeout(() => fadeEl.classList.remove("active"), 50);
+  };
+
+  bgImage.onerror = () => {
+    backgroundEl.style.backgroundImage = `url(${scene.background})`;
+    fadeEl.classList.add("active");
+    setTimeout(() => fadeEl.classList.remove("active"), 50);
+  };
+
   if (scene.introImage) {
     if (textBox) {
       textBox.classList.remove("visible");
@@ -133,81 +143,47 @@ function renderScene(sceneId, fromHistory = false) {
       }, showDuration);
     }
 
-    // Для intro тоже ждём загрузки изображения, чтобы fade был плавным
-    const introImg = new Image();
-    introImg.src = scene.introImage;
-    introImg.onload = () => {
-      // Картинка intro загрузилась → плавно убираем fade
-      setTimeout(() => fadeEl.classList.remove("active"), 50);
-    };
-    introImg.onerror = () => {
-      // Если ошибка — убираем fade через 2 секунды
-      setTimeout(() => fadeEl.classList.remove("active"), 2000);
+    return;
+  }
+
+  if (scene.minigame === "sleep" && !state.sleepGameCompleted) {
+    if (textBox) textBox.classList.remove("visible");
+    if (dialogueBox) dialogueBox.classList.remove("visible");
+
+    bgImage.onload = () => {
+      backgroundEl.style.backgroundImage = `url(${scene.background})`;
+      startSleepGame();
     };
 
     return;
   }
 
-  // ── Обычные сцены и мини-игры ───────────────────────────────────────
-  // Ждём загрузки фона перед любым появлением сцены
-  const bgImage = new Image();
-  bgImage.src = scene.background;
+  if (scene.minigame === "dogs" && !state.dogsGameCompleted) {
+    startDogsGame();
+    return;
+  }
 
-  bgImage.onload = () => {
-    // Фон полностью загружен → можно плавно показывать сцену
+  if (scene.minigame === "evidence" && !state.evidenceGameCompleted) {
+    if (textBox) textBox.classList.remove("visible");
+    if (dialogueBox) dialogueBox.classList.remove("visible");
 
-    // 1. Запускаем мини-игры, если они есть
-    if (scene.minigame === "sleep" && !state.sleepGameCompleted) {
-      const textBox = document.getElementById("text-box");
-      const dialogueBox = document.getElementById("dialogue-box");
-      if (textBox) textBox.classList.remove("visible");
-      if (dialogueBox) dialogueBox.classList.remove("visible");
-
-      startSleepGame();
-    } else if (scene.minigame === "dogs" && !state.dogsGameCompleted) {
-      startDogsGame();
-    } else if (scene.minigame === "evidence" && !state.evidenceGameCompleted) {
-      const textBox = document.getElementById("text-box");
-      const dialogueBox = document.getElementById("dialogue-box");
-      if (textBox) textBox.classList.remove("visible");
-      if (dialogueBox) dialogueBox.classList.remove("visible");
-
+    bgImage.onload = () => {
+      backgroundEl.style.backgroundImage = `url(${scene.background})`;
       startEvidenceGame(scene);
-    } else {
-      // Обычная сцена — показываем текст-бокс
-      if (textBox) {
-        textBox.style.display = "block";
-        textBox.classList.remove("visible");
-      }
-    }
+    };
 
-    // 2. Плавно убираем чёрный fade
-    setTimeout(() => fadeEl.classList.remove("active"), 50);
-  };
+    return;
+  }
 
-  bgImage.onerror = () => {
-    console.warn("Не удалось загрузить фон:", scene.background);
-    // Fallback: через 3 секунды всё равно показываем сцену
-    setTimeout(() => {
-      fadeEl.classList.remove("active");
+  if (textBox) {
+    textBox.style.display = "block";
+    textBox.classList.remove("visible");
+  }
 
-      if (scene.minigame === "sleep" && !state.sleepGameCompleted) {
-        startSleepGame();
-      } else if (scene.minigame === "dogs" && !state.dogsGameCompleted) {
-        startDogsGame();
-      } else if (scene.minigame === "evidence" && !state.evidenceGameCompleted) {
-        startEvidenceGame(scene);
-      } else {
-        if (textBox) {
-          textBox.style.display = "block";
-          textBox.classList.remove("visible");
-        }
-      }
-    }, 3000);
-  };
-
-  // Пока фон грузится — экран остаётся чёрным (fade active)
-  // Это гарантирует плавный fade-in, когда картинка готова
+  if (introOverlay) {
+    introOverlay.classList.remove("active");
+    introOverlay.style.opacity = "0";
+  }
 }
 
 function skipIntro() {
