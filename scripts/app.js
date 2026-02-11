@@ -474,7 +474,12 @@ function renderEnding(scene) {
   if (textBox) textBox.classList.remove("visible");
   if (dialogueBox) dialogueBox.classList.remove("visible");
 
-  stopParticles();
+  // 🔹 ВАЖНО: particles теперь условные
+  if (scene.particles) {
+    startParticles(scene.particles);
+  } else {
+    stopParticles();
+  }
 
   const overlay = document.getElementById("ending-overlay");
   const frameImg = document.getElementById("ending-frame-image");
@@ -486,12 +491,13 @@ function renderEnding(scene) {
 
   returnBtn.onclick = () => {
     overlay.classList.remove("active");
-    returnBtn.blur();          // <– remove keyboard focus
-    restartGame();             // or your transitionToScene("scene_1"...)
+    returnBtn.blur();
+    restartGame();
   };
 
   overlay.classList.add("active");
 }
+
 
 function restartGame() {
   // Invalidate all pending async navigation

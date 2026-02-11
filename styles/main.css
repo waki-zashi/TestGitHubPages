@@ -23,6 +23,14 @@ body {
   background-position: center;
 }
 
+#particles {
+  position: fixed;
+  inset: 0;
+
+  pointer-events: none;
+  z-index: 3;
+}
+
 #content {
   position: absolute;
   inset: 0;
@@ -110,14 +118,6 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-#particles {
-  position: fixed;
-  inset: 0;
-
-  pointer-events: none;
-  z-index: 3;
 }
 
 #intro-overlay {
